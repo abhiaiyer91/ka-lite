@@ -1,3 +1,5 @@
+"""
+"""
 import glob
 import os
 import random
@@ -5,15 +7,15 @@ import shutil
 import tempfile
 
 from django import conf
+from django.conf import settings
 from django.core import cache
 from django.core.cache.backends.filebased import FileBasedCache
 from django.core.cache.backends.locmem import LocMemCache
 
-import settings
-from config.models import Settings
-from main.topic_tools import get_node_cache
+from ..topic_tools import get_node_cache
+from fle_utils.config.models import Settings
+from kalite.testing.base import KALiteTestCase
 from securesync.models import Device
-from testing.base import KALiteTestCase
 
 
 class MainTestCase(KALiteTestCase):
@@ -94,7 +96,7 @@ class MainTestCase(KALiteTestCase):
         Helper function for testing video files.
         """
         video_id = get_node_cache("Video").keys()[0]
-        youtube_id = get_node_cache("Video")[video_id]["youtube_id"]
+        youtube_id = get_node_cache("Video")[video_id][0]["youtube_id"]
         fake_video_file = os.path.join(settings.CONTENT_ROOT, "%s.mp4" % youtube_id)
         with open(fake_video_file, "w") as fh:
             fh.write("")

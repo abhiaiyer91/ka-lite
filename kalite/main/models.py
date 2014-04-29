@@ -1,3 +1,8 @@
+"""
+All models associated with user learning / usage, including:
+* Exercise/Video progress
+* Login stats
+"""
 import random
 import uuid
 from annoying.functions import get_object_or_None
@@ -5,6 +10,7 @@ from math import ceil
 from datetime import datetime
 from dateutil import relativedelta
 
+from django.conf import settings; logging = settings.LOG
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -12,14 +18,12 @@ from django.db.models import Sum
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-import i18n
-import settings
-from facility.models import FacilityUser
+from fle_utils.django_utils import ExtendedModel
+from fle_utils.general import datediff, isnumeric
+from kalite import i18n
+from kalite.facility.models import FacilityUser
 from securesync import engine
 from securesync.models import DeferredCountSyncedModel, SyncedModel, Device
-from settings import LOG as logging
-from utils.django_utils import ExtendedModel
-from utils.general import datediff, isnumeric
 
 
 class VideoLog(DeferredCountSyncedModel):
@@ -319,7 +323,7 @@ class UserLog(ExtendedModel):  # Not sync'd, only summaries are
 
     @staticmethod
     def is_enabled():
-        return settings.USER_LOG_MAX_RECORDS_PER_USER != 0
+        return getattr(settings, "USER_LOG_MAX_RECORDS_PER_USER", 0) != 0
 
     def __unicode__(self):
         if self.end_datetime:

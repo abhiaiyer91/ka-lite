@@ -1,12 +1,13 @@
+"""
+"""
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+from django.conf import settings; logging = settings.LOG
 from django.contrib.sessions.models import Session
 
-import settings
 from .base import create_test_admin, KALiteTestCase
-from settings import LOG as logging
 
 
 browser = None # persistent browser
@@ -66,9 +67,9 @@ class BrowserTestCase(KALiteTestCase):
     clients and logging in profiles.
     """
 
-    persistent_browser = True
+    persistent_browser = False #not bool(os.environ.get("TRAVIS"))  # only use persistent browser when local.
 
-    HtmlFormElements = ["form", "input", "textarea", "label", "fieldset", "legend", "select", "optgroup", "option", "ubtton", "datalist", "keygen", "output"]  # not all act as tab stops, but ...
+    HtmlFormElements = ["form", "input", "textarea", "label", "fieldset", "legend", "select", "optgroup", "option", "button", "datalist", "keygen", "output"]  # not all act as tab stops, but ...
 
     def __init__(self, *args, **kwargs):
         self.max_wait_time = kwargs.get("max_wait_time", 30)
@@ -171,7 +172,7 @@ class BrowserTestCase(KALiteTestCase):
         """Both central and distributed servers use the Django messaging system.
         This code will verify that a message with the given type contains the specified text."""
 
-        time.sleep(0.50) # wait for the message to get created via AJAX
+        time.sleep(2) # wait for the message to get created via AJAX
 
         # Get messages (and limit by type)
         messages = self.browser.find_elements_by_class_name("alert")
@@ -189,38 +190,41 @@ class BrowserTestCase(KALiteTestCase):
                 self.assertEqual(exact, message.text, "Make sure message = '%s'" % exact)
 
 
-    def browser_next_form_element(self, num_expected_links=None):
+    def browser_next_form_element(self, num_expected_links=None, max_tabs=10):
         """
         Use keyboard navigation to traverse form elements.  Skip any intervening elements that have tab stops (namely, links).
 
         If specified, validate the # links skipped, or the total # of tabs needed.
         """
 
-        # Move tot he next thing.
+        # Move to the next actable element.
+        cur_element = self.browser.switch_to_active_element()
         self.browser_send_keys(Keys.TAB)
         num_tabs = 1
 
         # Loop until you've arrived at a form element
         num_links = 0
-        while self.browser.switch_to_active_element().tag_name not in BrowserTestCase.HtmlFormElements:
+        while num_tabs <= max_tabs and self.browser.switch_to_active_element().tag_name not in BrowserTestCase.HtmlFormElements:
             num_links += self.browser.switch_to_active_element().tag_name == "a"
             self.browser_send_keys(Keys.TAB)
             num_tabs += 1
 
+        self.assertLessEqual(num_tabs, max_tabs, "# of tabs exceeded max # of tabs (orig element: tag '%s' text '%s')." % (cur_element.tag_name, cur_element.text))
+
         if num_expected_links is not None:
-            self.assertEqual(num_links, num_expected_links, "Num links (%d) == %d" % (num_links, num_expected_links))
+            self.assertEqual(num_links, num_expected_links, "Num links: actual (%d) != expected (%d)" % (num_links, num_expected_links))
 
         return num_tabs
 
 
-    def browser_form_fill(self, keys="", num_expected_links=0):
+    def browser_form_fill(self, keys=""):
         """
         Convenience function to send some keys to a form element,
         then traverse to the next form element.
         """
         if keys:
             self.browser_send_keys(keys)
-        self.browser_next_form_element(num_expected_links=num_expected_links)
+        self.browser_next_form_element()
 
 
 

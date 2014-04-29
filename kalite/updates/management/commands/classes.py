@@ -1,10 +1,12 @@
+"""
+"""
 import sys
 
 from django.core.management.base import CommandError
 from django.utils.translation import ugettext as _
 
-from updates.models import UpdateProgressLog
-from utils.django_utils.command import LocaleAwareCommand
+from ...models import UpdateProgressLog
+from fle_utils.django_utils.command import LocaleAwareCommand
 
 
 class UpdatesCommand(LocaleAwareCommand):

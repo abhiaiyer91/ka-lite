@@ -8,7 +8,9 @@ from django.core.urlresolvers import reverse
 from django.test import LiveServerTestCase
 from django.test.client import Client
 
-from securesync.models import Device
+from fle_utils.config.models import Settings
+from securesync.models import Zone, DeviceZone , Device
+from securesync.tests.base import SecuresyncTestCase
 
 
 def create_test_admin(username="admin", password="pass", email="admin@example.com"):
@@ -28,15 +30,13 @@ def create_test_admin(username="admin", password="pass", email="admin@example.co
     return test_admin
 
 
-
-class KALiteTestCase(LiveServerTestCase):
+class KALiteTestCase(SecuresyncTestCase):
     """The base class for KA Lite test cases."""
 
-    def setUp(self):
-        Device.own_device = None  # cached within securesync, never cleared out
-
-    def tearDown(self):
-        Device.own_device = None  # cached within securesync, never cleared out
+    def register_device(self):
+        z = Zone.objects.create(name='test_zone')
+        DeviceZone.objects.create(zone=z, device=Device.get_own_device())
+        Settings.set("registered", True)
 
     def reverse(self, url_name, args=None, kwargs=None):
         """Given a URL name, returns the full central URL to that URL"""

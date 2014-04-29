@@ -1,15 +1,17 @@
+"""
+"""
 import sys
 from datetime import datetime  # main.models imports this way, so we have this hacky dependency.
 
+from django.conf import settings
 from django.utils import unittest
 
-import settings
-import version
-from facility.models import Facility, FacilityGroup, FacilityUser
-from main.models import *
-from main.tests.base import MainTestCase
+from .base import MainTestCase
+from ..models import *
+from fle_utils.testing import UnicodeModelsTest
+from kalite.facility.models import Facility, FacilityGroup, FacilityUser
 from securesync.models import Device
-from testing import UnicodeModelsTest
+
 
 class MainUnicodeModelsTest(MainTestCase, UnicodeModelsTest):
 
@@ -52,12 +54,12 @@ class MainUnicodeModelsTest(MainTestCase, UnicodeModelsTest):
         #
         elog = ExerciseLog(user=user, exercise_id=self.korean_string)
         self.assertNotIn(unicode(elog), "Bad Unicode data", "ExerciseLog: Bad conversion to unicode (before saving).")
-        elog.save()
+        elog.save(update_userlog=False)
         self.assertNotIn(unicode(elog), "Bad Unicode data", "ExerciseLog: Bad conversion to unicode (after saving).")
 
         vlog = VideoLog(user=user, video_id=self.korean_string, youtube_id=self.korean_string)
         self.assertNotIn(unicode(vlog), "Bad Unicode data", "VideoLog: Bad conversion to unicode (before saving).")
-        vlog.save()
+        vlog.save(update_userlog=False)
         self.assertNotIn(unicode(vlog), "Bad Unicode data", "VideoLog: Bad conversion to unicode (after saving).")
 
         ulog = UserLog(user=user)

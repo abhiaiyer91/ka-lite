@@ -37,12 +37,11 @@
 'branch': 'benchmark_v2',
 'class': 'Hello_world'
 }
-
-
  """
 import time
 import datetime
 
+from django.conf import settings; logging = settings.LOG
 from django.core import management
 from django.db import transaction
 from selenium.webdriver.support import expected_conditions, ui
@@ -52,11 +51,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 from . import base
-from facility.models import Facility, FacilityUser, FacilityGroup
-from main.models import ExerciseLog, VideoLog, UserLog
-from main.topic_tools import get_node_cache
-from settings import LOG as logging
-from testing.browser import BrowserTestCase
+from ..browser import BrowserTestCase
+from kalite.facility.models import Facility, FacilityUser, FacilityGroup
+from kalite.main.models import ExerciseLog, VideoLog, UserLog
+from kalite.main.topic_tools import get_node_cache
 
 
 class HelloWorld(base.Common):
